@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrleansClient", "OrleansClient\OrleansClient.csproj", "{07DDAD50-60CB-4F83-944A-ED061655F85E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrleansSilo", "OrleansSilo\OrleansSilo.csproj", "{B299D0C0-BBC1-44B3-850F-094ABA95A2F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrleansGrains", "OrleansGrains\OrleansGrains.csproj", "{A6C47077-34E1-49EF-8FCC-D50C8793FAF8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{07DDAD50-60CB-4F83-944A-ED061655F85E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07DDAD50-60CB-4F83-944A-ED061655F85E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07DDAD50-60CB-4F83-944A-ED061655F85E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07DDAD50-60CB-4F83-944A-ED061655F85E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B299D0C0-BBC1-44B3-850F-094ABA95A2F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B299D0C0-BBC1-44B3-850F-094ABA95A2F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B299D0C0-BBC1-44B3-850F-094ABA95A2F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B299D0C0-BBC1-44B3-850F-094ABA95A2F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6C47077-34E1-49EF-8FCC-D50C8793FAF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6C47077-34E1-49EF-8FCC-D50C8793FAF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6C47077-34E1-49EF-8FCC-D50C8793FAF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6C47077-34E1-49EF-8FCC-D50C8793FAF8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
