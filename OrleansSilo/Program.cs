@@ -24,10 +24,5 @@ await Host.CreateDefaultBuilder(args)
             options.BlobServiceClient = new Azure.Storage.Blobs.BlobServiceClient("UseDevelopmentStorage=true;");
         });
 
-        //siloBuilder.Configure<GrainCollectionOptions>(options =>
-        //{
-        //    options.CollectionQuantum = TimeSpan.FromSeconds(20);
-        //    options.CollectionAge = TimeSpan.FromSeconds(20);
-        //});
     }).RunConsoleAsync();
 

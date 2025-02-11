@@ -1,10 +1,12 @@
 ﻿using System.Runtime.Serialization;
+
 namespace OrleansClient.Contracts
 {
     [DataContract]
-    public record CreateAccount
+    public record CreateAtm
     {
         [DataMember]
-        public decimal OpeningBalance { get; init; }
+        public decimal InitialAtmCashBalance { get; init; }
     }
+
 }
