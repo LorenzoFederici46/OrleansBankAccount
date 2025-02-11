@@ -32,12 +32,12 @@ namespace OrleansGrains.Grains
             await _balanceState.WriteStateAsync();
         }
 
-        public async Task<decimal> getBalance()
+        public async Task<decimal> GetBalance()
         {
             return _balanceState.State.Balance;
         }
 
-        public async Task initialize(decimal openingBalance)
+        public async Task Initialize(decimal openingBalance)
         {
             _checkingAccountState.State.OpenedAtUtc = DateTime.UtcNow;
             _checkingAccountState.State.AccountType = "Default";
