@@ -24,5 +24,12 @@ await Host.CreateDefaultBuilder(args)
             options.BlobServiceClient = new Azure.Storage.Blobs.BlobServiceClient("UseDevelopmentStorage=true;");
         });
 
+        siloBuilder.AddAzureTableTransactionalStateStorageAsDefault(configureOptions: options =>
+        {
+            options.TableServiceClient = new Azure.Data.Tables.TableServiceClient("UseDevelopmentStorage=true;");
+        });
+
+        siloBuilder.UseTransactions();
+
     }).RunConsoleAsync();
 

@@ -15,70 +15,124 @@ builder.Host.UseOrleansClient((context, client) =>
         options.ClusterId = "OrleansCluster";
         options.ServiceId = "OrleansService";
     });
+
+    client.UseTransactions();
 });
 var app = builder.Build();
 
 app.MapPost("checkingaccount", 
-    async (IClusterClient clusterClient, CreateAccount createAccount) =>
-{
-    var checkingAccountID = Guid.NewGuid();
-    var checkingAccountGrain = clusterClient.GetGrain<ICheckingAccountGrain>(checkingAccountID);
-    await checkingAccountGrain.Initialize(createAccount.OpeningBalance);
+    async (IClusterClient clusterClient, 
+            ITransactionClient transactionClient, 
+                CreateAccount createAccount) => {
 
-    return TypedResults.Created($"checkingaccount/{checkingAccountID}");
+    var checkingAccountID = Guid.NewGuid();
+    await transactionClient.RunTransaction(TransactionOption.Create, async () =>
+    {
+        var checkingAccountGrain = clusterClient.GetGrain<ICheckingAccountGrain>(checkingAccountID);
+        await checkingAccountGrain.Initialize(createAccount.OpeningBalance);
+    });
+
+    return TypedResults.Created($"checkingaccounnt/{checkingAccountID}");
 });
 
 app.MapGet("checkingaccount/{checkingAccountID}/balance", 
-    async (IClusterClient clusterClient, Guid checkingAccountID) =>
+    async (IClusterClient clusterClient, 
+            ITransactionClient transactionClient,
+                Guid checkingAccountID) => {
+
+    decimal balance = 0;
+    await transactionClient.RunTransaction(TransactionOption.Create, async () => 
     {
         var checkingAccountGrain = clusterClient.GetGrain<ICheckingAccountGrain>(checkingAccountID);
-        var balance = await checkingAccountGrain.GetBalance();
-        return TypedResults.Ok(balance);
+        balance = await checkingAccountGrain.GetBalance();
     });
 
+    return TypedResults.Ok(balance);
+});
+
 app.MapPost("checkingaccount/{checkingAccountID}/debit", 
-    async (Guid checkingAccountID, Debit debit, IClusterClient clusterClient) =>
+    async (Guid checkingAccountID, Debit debit,
+            ITransactionClient transactionClient, 
+                IClusterClient clusterClient) => {
+   
+    await transactionClient.RunTransaction(TransactionOption.Create, async () =>
     {
-        var checkingAccountGrain = clusterClient.GetGrain<ICheckingAccountGrain>(checkingAccountID);
-        await checkingAccountGrain.Debit(debit.Amount);
-        return TypedResults.NoContent();
+            var checkingAccountGrain = clusterClient.GetGrain<ICheckingAccountGrain>(checkingAccountID);
+            await checkingAccountGrain.Debit(debit.Amount);
+    });
+
+    return TypedResults.NoContent();
 });
 
 app.MapPost("checkingaccount/{checkingAccountID}/credit", 
-    async (Guid checkingAccountID, Credit credit, IClusterClient clusterClient) =>
+    async (Guid checkingAccountID, Credit credit,
+                ITransactionClient transactionClient,
+                    IClusterClient clusterClient) => {
+
+    await transactionClient.RunTransaction(TransactionOption.Create, async () =>
     {
         var checkingAccountGrain = clusterClient.GetGrain<ICheckingAccountGrain>(checkingAccountID);
         await checkingAccountGrain.Credit(credit.Amount);
-        return TypedResults.NoContent();
-});
+    });
 
-app.MapPost("atm", 
-    async (CreateAtm createAtm, IClusterClient clusterClient) =>
-    {
-        var atmID = Guid.NewGuid();
-        var atmGrain = clusterClient.GetGrain<IAtmGrain>(atmID);
-        await atmGrain.Initialize(createAtm.InitialAtmCashBalance);
-        return TypedResults.Created($"atm/{atmID}");
-});
-
-app.MapPost("atm/{atmID}/withdraw", 
-    async (Guid atmID, AtmWithdraw atmWithdraw, IClusterClient clusterClient) =>
-    {
-        var atmGrain = clusterClient.GetGrain<IAtmGrain>(atmID);
-        var checkingAccountGrain = clusterClient.GetGrain<ICheckingAccountGrain>(atmWithdraw.CheckingAccountID);
-
-        await atmGrain.Withdraw(atmWithdraw.CheckingAccountID, atmWithdraw.Amount);
-
+    return TypedResults.NoContent();
 });
 
 app.MapPost("checkingaccount/{checkingAccountID}/transfer",
-    async (Guid checkingAccountID, Transfer transfer, IClusterClient clusterClient) =>
+    async (Guid checkingAccountID, Transfer transfer,
+             ITransactionClient transactionClient,
+                IClusterClient clusterClient) => {
+    
+    await transactionClient.RunTransaction(TransactionOption.Create, async () =>
     {
         var sender = clusterClient.GetGrain<ICheckingAccountGrain>(checkingAccountID);
         var receiver = clusterClient.GetGrain<ICheckingAccountGrain>(transfer.CheckingAccountID);
-
         await sender.Transfer(transfer.CheckingAccountID, transfer.Amount);
+    });
         return TypedResults.NoContent();
     });
+
+app.MapPost("atm", 
+    async (CreateAtm createAtm,
+            ITransactionClient transactionClient,
+                IClusterClient clusterClient) => {
+    
+    var atmID = Guid.NewGuid();
+    await transactionClient.RunTransaction(TransactionOption.Create, async () =>
+    {
+        var atmGrain = clusterClient.GetGrain<IAtmGrain>(atmID);
+        await atmGrain.Initialize(createAtm.InitialAtmCashBalance);
+    });
+
+    return TypedResults.Created($"atm/{atmID}");
+});
+
+app.MapGet("atm/{atmID}/balance", 
+    async (Guid atmID, ITransactionClient transactionClient,
+                IClusterClient clusterClient) => {
+    
+    decimal balance = 0;
+    await transactionClient.RunTransaction(TransactionOption.Create, async () =>
+    {
+        var atmGrain = clusterClient.GetGrain<IAtmGrain>(atmID);
+        balance = await atmGrain.GetBalance();
+    });
+
+    return TypedResults.Ok(balance);
+});
+
+app.MapPost("atm/{atmID}/withdraw", 
+    async (Guid atmID, AtmWithdraw atmWithdraw,
+            ITransactionClient transactionClient, 
+                IClusterClient clusterClient) => {
+
+    await transactionClient.RunTransaction(TransactionOption.Create, async () =>
+    {
+        var atmGrain = clusterClient.GetGrain<IAtmGrain>(atmID);
+        var checkingAccountGrain = clusterClient.GetGrain<ICheckingAccountGrain>(atmWithdraw.CheckingAccountID);
+        await atmGrain.Withdraw(atmWithdraw.CheckingAccountID, atmWithdraw.Amount);
+        await checkingAccountGrain.Debit(atmWithdraw.Amount);
+    });
+});
 
 app.Run();

@@ -1,52 +1,56 @@
-﻿using OrleansGrains.Abstraction;
+﻿using Orleans.Concurrency;
+using Orleans.Transactions.Abstractions;
+using OrleansGrains.Abstraction;
 using OrleansGrains.States;
 namespace OrleansGrains.Grains
 {
+    [Reentrant]
     public class CheckingAccountGrain : Grain, ICheckingAccountGrain
     {
-        private readonly IPersistentState<BalanceState> _balanceState;
+        private readonly ITransactionalState<BalanceState> _balanceTransactionalState;
         private readonly IPersistentState<CheckingAccountState> _checkingAccountState;
         public CheckingAccountGrain(
-            [PersistentState("balance", "tableStorage")] IPersistentState<BalanceState> balanceState,
+            [TransactionalState("balance")] ITransactionalState<BalanceState> balanceTransactionalState,
             [PersistentState("checkingAccount", "blobStorage")] IPersistentState<CheckingAccountState> checkingAccountState)
         {
-            _balanceState = balanceState;
+            _balanceTransactionalState = balanceTransactionalState;
             _checkingAccountState = checkingAccountState;
         }
 
         public async Task Credit(decimal amount)
         {
-            var currentBalance = _balanceState.State.Balance;
-            var newBalance = currentBalance + amount;
-
-            _balanceState.State.Balance = newBalance;
-            await _balanceState.WriteStateAsync();
+            await _balanceTransactionalState.PerformUpdate(state =>
+            {
+                var currentBalance = state.Balance;
+                var newBalance = currentBalance + amount;
+                state.Balance = newBalance;
+            });
         }
 
         public async Task Debit(decimal amount)
         {
-            var currentBalance = _balanceState.State.Balance;
-            var newBalance = currentBalance - amount;
-
-            _balanceState.State.Balance = newBalance;
-            await _balanceState.WriteStateAsync();
+            await _balanceTransactionalState.PerformUpdate(state =>
+            {
+                var currentBalance = state.Balance;
+                var newBalance = currentBalance - amount;
+                state.Balance = newBalance;
+            });
         }
         public async Task Transfer(Guid checkingAccountID, decimal amount)
         {
             var checkingAccountGrain = GrainFactory.GetGrain<ICheckingAccountGrain>(checkingAccountID);
-            var currentBalance = _balanceState.State.Balance;
-            var newBalance = currentBalance - amount;
-
-            _balanceState.State.Balance = newBalance;
+            await _balanceTransactionalState.PerformUpdate(state =>
+            {
+                var currentBalance = state.Balance;
+                var newBalance = currentBalance - amount;
+                state.Balance = newBalance;
+            });
             await checkingAccountGrain.Credit(amount);
-
-            await _balanceState.WriteStateAsync();
-
         }
 
         public async Task<decimal> GetBalance()
         {
-            return _balanceState.State.Balance;
+            return await _balanceTransactionalState.PerformRead(state => state.Balance);
         }
 
         public async Task Initialize(decimal openingBalance)
@@ -55,9 +59,12 @@ namespace OrleansGrains.Grains
             _checkingAccountState.State.AccountType = "Default";
             _checkingAccountState.State.AccountID = this.GetGrainId().GetGuidKey();
 
-           _balanceState.State.Balance = openingBalance;
-           await _balanceState.WriteStateAsync();
-           await _checkingAccountState.WriteStateAsync();
+            await _balanceTransactionalState.PerformUpdate(state =>
+            {
+                state.Balance = openingBalance;
+            });
+
+            await _checkingAccountState.WriteStateAsync();
         }
     }
 }
