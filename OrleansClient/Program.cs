@@ -68,8 +68,17 @@ app.MapPost("atm/{atmID}/withdraw",
         var checkingAccountGrain = clusterClient.GetGrain<ICheckingAccountGrain>(atmWithdraw.CheckingAccountID);
 
         await atmGrain.Withdraw(atmWithdraw.CheckingAccountID, atmWithdraw.Amount);
-        await checkingAccountGrain.Debit(atmWithdraw.Amount);
 
 });
+
+app.MapPost("checkingaccount/{checkingAccountID}/transfer",
+    async (Guid checkingAccountID, Transfer transfer, IClusterClient clusterClient) =>
+    {
+        var sender = clusterClient.GetGrain<ICheckingAccountGrain>(checkingAccountID);
+        var receiver = clusterClient.GetGrain<ICheckingAccountGrain>(transfer.CheckingAccountID);
+
+        await sender.Transfer(transfer.CheckingAccountID, transfer.Amount);
+        return TypedResults.NoContent();
+    });
 
 app.Run();

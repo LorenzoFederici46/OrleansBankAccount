@@ -10,6 +10,7 @@ namespace OrleansGrains.Grains
         {
             _atmState = atmState;
         }
+
         public async Task Initialize(decimal openingBalance)
         {
             _atmState.State.Balance = openingBalance;

@@ -4,5 +4,6 @@
     {
         public Task Initialize(decimal openingBalance);
         public Task Withdraw(Guid checkingAccountID, decimal amount);
+
     }
 }

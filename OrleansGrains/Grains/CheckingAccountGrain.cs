@@ -31,6 +31,18 @@ namespace OrleansGrains.Grains
             _balanceState.State.Balance = newBalance;
             await _balanceState.WriteStateAsync();
         }
+        public async Task Transfer(Guid checkingAccountID, decimal amount)
+        {
+            var checkingAccountGrain = GrainFactory.GetGrain<ICheckingAccountGrain>(checkingAccountID);
+            var currentBalance = _balanceState.State.Balance;
+            var newBalance = currentBalance - amount;
+
+            _balanceState.State.Balance = newBalance;
+            await checkingAccountGrain.Credit(amount);
+
+            await _balanceState.WriteStateAsync();
+
+        }
 
         public async Task<decimal> GetBalance()
         {

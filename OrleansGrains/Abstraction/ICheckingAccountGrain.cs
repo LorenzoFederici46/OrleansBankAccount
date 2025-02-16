@@ -6,5 +6,7 @@
         Task<decimal> GetBalance();
         Task Debit(decimal amount);
         Task Credit(decimal amount);
+        Task Transfer(Guid checkingAccountID, decimal amount);
+
     }
 }
