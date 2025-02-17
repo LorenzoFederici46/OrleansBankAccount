@@ -22,8 +22,8 @@ var app = builder.Build();
 
 app.MapPost("checkingaccount", 
     async (IClusterClient clusterClient, 
-            ITransactionClient transactionClient, 
-                CreateAccount createAccount) => {
+           ITransactionClient transactionClient, 
+           CreateAccount createAccount) => {
 
     var checkingAccountID = Guid.NewGuid();
     await transactionClient.RunTransaction(TransactionOption.Create, async () =>
@@ -37,8 +37,8 @@ app.MapPost("checkingaccount",
 
 app.MapGet("checkingaccount/{checkingAccountID}/balance", 
     async (IClusterClient clusterClient, 
-            ITransactionClient transactionClient,
-                Guid checkingAccountID) => {
+           ITransactionClient transactionClient,
+           Guid checkingAccountID) => {
 
     decimal balance = 0;
     await transactionClient.RunTransaction(TransactionOption.Create, async () => 
@@ -52,8 +52,8 @@ app.MapGet("checkingaccount/{checkingAccountID}/balance",
 
 app.MapPost("checkingaccount/{checkingAccountID}/debit", 
     async (Guid checkingAccountID, Debit debit,
-            ITransactionClient transactionClient, 
-                IClusterClient clusterClient) => {
+           ITransactionClient transactionClient, 
+           IClusterClient clusterClient) => {
    
     await transactionClient.RunTransaction(TransactionOption.Create, async () =>
     {
@@ -66,8 +66,8 @@ app.MapPost("checkingaccount/{checkingAccountID}/debit",
 
 app.MapPost("checkingaccount/{checkingAccountID}/credit", 
     async (Guid checkingAccountID, Credit credit,
-                ITransactionClient transactionClient,
-                    IClusterClient clusterClient) => {
+           ITransactionClient transactionClient,
+           IClusterClient clusterClient) => {
 
     await transactionClient.RunTransaction(TransactionOption.Create, async () =>
     {
@@ -80,8 +80,8 @@ app.MapPost("checkingaccount/{checkingAccountID}/credit",
 
 app.MapPost("checkingaccount/{checkingAccountID}/transfer",
     async (Guid checkingAccountID, Transfer transfer,
-             ITransactionClient transactionClient,
-                IClusterClient clusterClient) => {
+           ITransactionClient transactionClient,
+           IClusterClient clusterClient) => {
     
     await transactionClient.RunTransaction(TransactionOption.Create, async () =>
     {
@@ -94,8 +94,8 @@ app.MapPost("checkingaccount/{checkingAccountID}/transfer",
 
 app.MapPost("atm", 
     async (CreateAtm createAtm,
-            ITransactionClient transactionClient,
-                IClusterClient clusterClient) => {
+           ITransactionClient transactionClient,
+           IClusterClient clusterClient) => {
     
     var atmID = Guid.NewGuid();
     await transactionClient.RunTransaction(TransactionOption.Create, async () =>
@@ -109,7 +109,7 @@ app.MapPost("atm",
 
 app.MapGet("atm/{atmID}/balance", 
     async (Guid atmID, ITransactionClient transactionClient,
-                IClusterClient clusterClient) => {
+           IClusterClient clusterClient) => {
     
     decimal balance = 0;
     await transactionClient.RunTransaction(TransactionOption.Create, async () =>
@@ -123,8 +123,8 @@ app.MapGet("atm/{atmID}/balance",
 
 app.MapPost("atm/{atmID}/withdraw", 
     async (Guid atmID, AtmWithdraw atmWithdraw,
-            ITransactionClient transactionClient, 
-                IClusterClient clusterClient) => {
+           ITransactionClient transactionClient, 
+           IClusterClient clusterClient) => {
 
     await transactionClient.RunTransaction(TransactionOption.Create, async () =>
     {
@@ -133,6 +133,25 @@ app.MapPost("atm/{atmID}/withdraw",
         await atmGrain.Withdraw(atmWithdraw.CheckingAccountID, atmWithdraw.Amount);
         await checkingAccountGrain.Debit(atmWithdraw.Amount);
     });
+});
+
+app.MapGet("customer/{customerID}/networth",
+    async (IClusterClient clusterClient,Guid customerID) => {
+
+        var customerGrain = clusterClient.GetGrain<ICustomerGrain>(customerID);
+        var networth = await customerGrain.GetNetWorth();
+
+        return TypedResults.Ok(networth);
+});
+
+app.MapPost("customer/{customerID}/addcheckingaccount", async (
+    Guid customerID,
+    CustomerCheckingAccount customerCheckingAccount,
+    IClusterClient clusterClient) =>
+{
+    var customerGrain = clusterClient.GetGrain<ICustomerGrain>(customerID);
+    await customerGrain.AddCheckingAccount(customerCheckingAccount.AccountID);
+    return TypedResults.NoContent();
 });
 
 app.Run();

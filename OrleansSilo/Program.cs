@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Azure.Storage.Queues;
+using Microsoft.Extensions.Hosting;
 using Orleans.Configuration;
 await Host.CreateDefaultBuilder(args)
     .UseOrleans(siloBuilder =>
@@ -30,6 +31,15 @@ await Host.CreateDefaultBuilder(args)
         });
 
         siloBuilder.UseTransactions();
+
+        siloBuilder.AddAzureQueueStreams("StreamProvider", optionsBuilder =>
+        {
+            optionsBuilder.Configure(options => { options.QueueServiceClient = new QueueServiceClient("UseDevelopmentStorage=true;"); });
+        })
+        .AddAzureTableGrainStorage("PubSubStore", configureOptions: options =>
+        {
+            options.Configure(o => o.TableServiceClient = new Azure.Data.Tables.TableServiceClient("UseDevelopmentStorage=true;"));
+        });
 
     }).RunConsoleAsync();
 

@@ -1,6 +1,7 @@
 ﻿using Orleans.Concurrency;
 using Orleans.Transactions.Abstractions;
 using OrleansGrains.Abstraction;
+using OrleansGrains.Event;
 using OrleansGrains.States;
 namespace OrleansGrains.Grains
 {
@@ -25,6 +26,16 @@ namespace OrleansGrains.Grains
                 var newBalance = currentBalance + amount;
                 state.Balance = newBalance;
             });
+
+            var streamProvider = this.GetStreamProvider("StreamProvider");
+            var streamID = StreamId.Create("BalanceStream", this.GetGrainId().GetGuidKey());
+            var stream = streamProvider.GetStream<BalanceChangeEvent>(streamID);
+
+            await stream.OnNextAsync(new BalanceChangeEvent()
+            {
+                CheckingAccountID = this.GetGrainId().GetGuidKey(),
+                Balance = await GetBalance()
+            });
         }
 
         public async Task Debit(decimal amount)
@@ -34,6 +45,16 @@ namespace OrleansGrains.Grains
                 var currentBalance = state.Balance;
                 var newBalance = currentBalance - amount;
                 state.Balance = newBalance;
+            });
+
+            var streamProvider = this.GetStreamProvider("StreamProvider");
+            var streamID = StreamId.Create("BalanceStream", this.GetGrainId().GetGuidKey());
+            var stream = streamProvider.GetStream<BalanceChangeEvent>(streamID);
+
+            await stream.OnNextAsync(new BalanceChangeEvent()
+            {
+                CheckingAccountID = this.GetGrainId().GetGuidKey(),
+                Balance = await GetBalance()
             });
         }
         public async Task Transfer(Guid checkingAccountID, decimal amount)
@@ -45,6 +66,17 @@ namespace OrleansGrains.Grains
                 var newBalance = currentBalance - amount;
                 state.Balance = newBalance;
             });
+
+            var streamProvider = this.GetStreamProvider("StreamProvider");
+            var streamID = StreamId.Create("BalanceStream", this.GetGrainId().GetGuidKey());
+            var stream = streamProvider.GetStream<BalanceChangeEvent>(streamID);
+
+            await stream.OnNextAsync(new BalanceChangeEvent()
+            {
+                CheckingAccountID = this.GetGrainId().GetGuidKey(),
+                Balance = await GetBalance()
+            });
+
             await checkingAccountGrain.Credit(amount);
         }
 
