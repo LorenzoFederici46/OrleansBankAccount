@@ -1,0 +1,32 @@
+
+#Performing credit operation
+POST https://localhost:7233/checkingaccount/accountID/credit
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+    "amount": 10
+}
+
+###
+
+#Performing debit operation
+POST https://localhost:7233/checkingaccount/accountID/debit
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+    "amount": 10
+}
+
+###
+
+#Transferring credits between checking account
+POST https://localhost:7233/checkingaccount/senderID/transfer
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+    "checkingAccountID": "receiverID",
+    "amount": 20
+}
+
+###
+

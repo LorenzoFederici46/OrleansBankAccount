@@ -1,0 +1,10 @@
+
+#Read checking account balance
+GET https://localhost:7233/checkingaccount/accountID/balance
+
+###
+
+#Reading atm balance
+GET https://localhost:7233/atm/atmID/balance
+
+###

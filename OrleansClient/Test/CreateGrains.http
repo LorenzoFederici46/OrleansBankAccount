@@ -1,0 +1,20 @@
+
+#Create ATM grain
+POST https://localhost:7233/atm
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+    "initialAtmCashBalance": 1000
+}
+
+###
+
+#Create CheckingAccount grain
+POST https://localhost:7233/checkingaccount
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+    "openingBalance": 1000
+}
+
+###
